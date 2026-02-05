@@ -20,10 +20,3 @@ export interface Expense {
     localDate: string;
   }
   
-  // Monthly budget summary (for frontend calculation/display)
-  export interface MonthlyBudgetSummary {
-    month: string; // Format: "YYYY-MM"
-    totalExpenses: number;
-    expenseCount: number;
-    expenses: Expense[];
-  }
