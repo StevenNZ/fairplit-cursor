@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 import { useCurrentUser, useLogout, tokenManager } from '../hooks/useAuth';
 import type { User } from '../types';
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;

@@ -13,6 +13,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
+    
     // Simulate auth delay
     await new Promise((resolve) => setTimeout(resolve, 800))
     setIsLoading(false)

@@ -1,8 +1,11 @@
 import {
-    createRootRoute,
+    createRootRouteWithContext,
     createRoute,
     Outlet,
+    redirect,
   } from "@tanstack/react-router"
+
+  import type { AuthContextType } from "./contexts/AuthContext"
   
   // Layouts
   import AuthLayout from "./app/(auth)/layout"
@@ -16,8 +19,12 @@ import {
   import AnalyticsPage from "./app/dashboard/analytics/page"
   import SettingsPage from "./app/dashboard/settings/page"
   
+  export type RouterContext = {
+    auth: AuthContextType
+  }
+  
   // Root layout - just renders children with base HTML structure
-  const rootRoute = createRootRoute({
+  const rootRoute = createRootRouteWithContext<RouterContext>()({
     component: () => (
       <div className="font-sans antialiased">
         <Outlet />
@@ -36,6 +43,11 @@ import {
   const authLayoutRoute = createRoute({
     getParentRoute: () => rootRoute,
     id: "auth",
+    beforeLoad: ({ context }) => {
+      if (context.auth.isAuthenticated) {
+        throw redirect({ to: "/dashboard" })        
+      }
+    },
     component: () => (
       <AuthLayout>
         <Outlet />
@@ -59,6 +71,11 @@ import {
   const dashboardLayoutRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: "/dashboard",
+    beforeLoad: ({ context }) => {
+      if (!context.auth.isAuthenticated) {
+        throw redirect({ to: "/login" })
+      }
+    },
     component: () => (
       <DashboardLayout>
         <Outlet />
