@@ -12,8 +12,6 @@ export const useExpenses = (userId: string) => {
   return useQuery({
     queryKey: expenseKeys.all,
     queryFn: () => expenseAPI.getExpenses(userId),
-    enabled: !!userId,
-    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
   });
 };
 

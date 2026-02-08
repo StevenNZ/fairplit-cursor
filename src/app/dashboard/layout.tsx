@@ -16,10 +16,10 @@ export default function DashboardLayout({
 
   // redirect to login if not authenticated
   useEffect(() => {
-    if (!auth.isAuthenticated && !auth.isLoading) {
+    if (!auth.isLoading && !auth.isAuthenticated) {
       navigate({ to: '/login' });
     }
-  }, [auth.isAuthenticated, auth.isLoading]);
+  }, [auth.isAuthenticated, auth.isLoading, navigate, auth]);
 
   if (auth.isLoading || !auth.isAuthenticated) {
     return <div>Loading...</div>;

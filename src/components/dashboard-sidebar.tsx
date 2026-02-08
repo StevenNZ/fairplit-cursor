@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useLogout } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { to: "/dashboard" as const, label: "Overview", icon: LayoutDashboard },
@@ -30,7 +31,13 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
   const location = useLocation()
   const pathname = location.pathname
 
-  const logout = useLogout()
+  const auth = useAuth()
+  const navigate = useNavigate()
+
+  const logout = () => {
+    auth.logout()
+    navigate({ to: '/login' });
+  }
 
   return (
     <>

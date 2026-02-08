@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authAPI } from '../api/authAPI';
 import type { RegisterRequest, LoginRequest, User } from '../types';
-import { useNavigate } from '@tanstack/react-router';
 
 // Query keys
 export const authKeys = {
@@ -44,7 +43,6 @@ export const useRegister = () => {
 // Login mutation
 export const useLogin = () => {
   const queryClient = useQueryClient();
-  const navigate = useNavigate()
 
   return useMutation({
     mutationFn: (data: LoginRequest) => authAPI.login(data),
@@ -54,9 +52,6 @@ export const useLogin = () => {
       tokenManager.setUser(response.user);
 
       queryClient.setQueryData(authKeys.me, response.user);
-      
-      await queryClient.invalidateQueries({ queryKey: authKeys.me });
-      navigate({ to: '/dashboard' });
     },
   });
 };
@@ -64,12 +59,12 @@ export const useLogin = () => {
 // Logout function
 export const useLogout = () => {
   const queryClient = useQueryClient();
-  
+
   return () => {    
     tokenManager.removeToken();
     tokenManager.removeUser();
     queryClient.setQueryData(authKeys.me, null);
-    queryClient.clear();  
+    queryClient.clear();
   };
 };
 

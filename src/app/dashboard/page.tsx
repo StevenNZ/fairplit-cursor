@@ -1,29 +1,41 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { StatCards } from "@/components/stat-cards"
 import { SpendingChart } from "@/components/spending-chart"
 import { RecentExpenses } from "@/components/recent-expenses"
 import { ExpenseDialog } from "@/components/expense-dialog"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
-import { MOCK_EXPENSES } from "@/lib/mock-data"
 import type { Expense } from "../../types"
+import { useCreateExpense, useExpenses } from "@/hooks/useExpenses"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function DashboardPage() {
-  const [expenses, setExpenses] = useState<Expense[]>(MOCK_EXPENSES)
   const [dialogOpen, setDialogOpen] = useState(false)
+  
+  const {user, isLoading: userLoading} = useAuth()
+
+  if (!user) {
+    return <div>Not logged in</div>
+  }
+
+  if (userLoading) {
+    return <div>Loading user...</div>
+  }
+
+  const { data: expenses = [], isLoading } = useExpenses(user.id)
+  const createExpense = useCreateExpense(user.id)
+
+  if (isLoading) {
+    return <div>Loading expenses...</div>
+  }
 
   const handleSave = (data: Omit<Expense, "id"> & { id?: string }) => {
-    if (data.id) {
-      setExpenses((prev) =>
-        prev.map((e) => (e.id === data.id ? { ...e, ...data } as Expense : e))
-      )
-    } else {
-      setExpenses((prev) => [
-        ...prev,
-        { ...data, id: crypto.randomUUID() } as Expense,
-      ])
+    if (!data.id) {
+      createExpense.mutate(data)
+      setDialogOpen(false)
     }
   }
+
 
   return (
     <div className="flex flex-col gap-6">
