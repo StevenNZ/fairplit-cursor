@@ -10,7 +10,7 @@ export const authAPI = {
   },
 
   // Login user
-  login: async (data: LoginRequest): Promise<AuthResponse> => {
+  login: async (data: LoginRequest): Promise<AuthResponse> => {    
     const response = await apiClient.post<AuthResponse>('/auth/login', data);
     return response.data;
   },
@@ -24,6 +24,11 @@ export const authAPI = {
   // Update user
   updateUser: async (userId: string, data: Partial<User>): Promise<User> => {
     const response = await apiClient.put<User>(`/users/${userId}`, data);
+    return response.data;
+  },
+
+  getCurrentUser: async (): Promise<User> => {
+    const response = await apiClient.get<User>(`/auth/me`);    
     return response.data;
   },
 };

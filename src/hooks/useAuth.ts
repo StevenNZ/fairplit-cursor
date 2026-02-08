@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authAPI } from '../api/authAPI';
 import type { RegisterRequest, LoginRequest, User } from '../types';
+import { useNavigate } from '@tanstack/react-router';
 
 // Query keys
 export const authKeys = {
-  all: ['auth'] as const,
-  user: (userId: string) => [...authKeys.all, 'user', userId] as const,
+  me: ['me'] as const,
 };
 
 // Auth token management
@@ -33,14 +33,10 @@ export const tokenManager = {
 
 // Register mutation
 export const useRegister = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (data: RegisterRequest) => authAPI.register(data),
-    onSuccess: (response) => {
-      tokenManager.setToken(response.token);
-      tokenManager.setUser(response.user);
-      queryClient.setQueryData(authKeys.user(response.user.id), response.user);
+    onSuccess: () => {
+      console.log("registered");
     },
   });
 };
@@ -48,13 +44,19 @@ export const useRegister = () => {
 // Login mutation
 export const useLogin = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate()
 
   return useMutation({
     mutationFn: (data: LoginRequest) => authAPI.login(data),
-    onSuccess: (response) => {
+
+    onSuccess: async (response) => {
       tokenManager.setToken(response.token);
       tokenManager.setUser(response.user);
-      queryClient.setQueryData(authKeys.user(response.user.id), response.user);
+
+      queryClient.setQueryData(authKeys.me, response.user);
+      
+      await queryClient.invalidateQueries({ queryKey: authKeys.me });
+      navigate({ to: '/dashboard' });
     },
   });
 };
@@ -62,30 +64,29 @@ export const useLogin = () => {
 // Logout function
 export const useLogout = () => {
   const queryClient = useQueryClient();
-
-  return () => {
+  
+  return () => {    
     tokenManager.removeToken();
     tokenManager.removeUser();
-    queryClient.clear();
+    queryClient.setQueryData(authKeys.me, null);
+    queryClient.clear();  
   };
 };
 
 // Get current user
 export const useCurrentUser = () => {
-  const user = tokenManager.getUser();
-
   return useQuery({
-    queryKey: user ? authKeys.user(user.id) : ['auth', 'user', 'null'],
-    queryFn: () => (user ? authAPI.getUser(user.id) : null),
-    enabled: !!user,
-    initialData: user || undefined,
+    queryKey: authKeys.me,
+    queryFn: () => authAPI.getCurrentUser(),
+    enabled: !!tokenManager.getToken(),
+    retry: false,
   });
 };
 
 // Get user by ID
 export const useUser = (userId: string) => {
   return useQuery({
-    queryKey: authKeys.user(userId),
+    queryKey: authKeys.me,
     queryFn: () => authAPI.getUser(userId),
     enabled: !!userId,
   });
@@ -100,7 +101,7 @@ export const useUpdateUser = () => {
     mutationFn: ({ userId, data }: { userId: string; data: Partial<User> }) =>
       authAPI.updateUser(userId, data),
     onSuccess: (updatedUser) => {
-      queryClient.setQueryData(authKeys.user(updatedUser.id), updatedUser);
+      queryClient.setQueryData(authKeys.me, updatedUser);
       if (user?.id === updatedUser.id) {
         tokenManager.setUser(updatedUser);
       }
