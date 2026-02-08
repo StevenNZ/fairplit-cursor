@@ -1,12 +1,15 @@
 import { Menu, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface DashboardHeaderProps {
   onMenuClick: () => void
 }
 
 export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
+  const {user} = useAuth();
+  
   return (
     <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 lg:px-8">
       <div className="flex items-center gap-3">
@@ -24,23 +27,14 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             Good morning,
           </h2>
           <p className="font-display text-lg font-semibold text-foreground">
-            John Doe
+            {user?.name}
           </p>
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative text-muted-foreground hover:text-foreground hover:bg-secondary"
-          aria-label="Notifications"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
-        </Button>
         <Avatar className="h-9 w-9 border-2 border-border">
           <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-            JD
+            {user?.name.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
       </div>
