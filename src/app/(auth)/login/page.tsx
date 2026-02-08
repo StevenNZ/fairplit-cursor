@@ -1,23 +1,39 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, ArrowRight } from "lucide-react"
+import { useLogin } from "@/hooks/useAuth"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const loginMutation = useLogin()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const auth = useAuth();
+
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      navigate({ to: "/dashboard" });
+    }
+  }, [auth.isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
-    
-    // Simulate auth delay
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    setIsLoading(false)
-    navigate({ to: "/dashboard" })
+
+    try {
+      await loginMutation.mutateAsync({ email, password })
+      } catch (err) {
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -42,6 +58,8 @@ export default function LoginPage() {
             Email address
           </Label>
           <Input
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)}
             id="email"
             type="email"
             placeholder="you@example.com"
@@ -64,6 +82,8 @@ export default function LoginPage() {
           </div>
           <div className="relative">
             <Input
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)}
               id="password"
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"

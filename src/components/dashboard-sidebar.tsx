@@ -1,6 +1,6 @@
 'use client';
 
-import { Link, useLocation } from "@tanstack/react-router"
+import { Link, Navigate, useLocation, useNavigate } from "@tanstack/react-router"
 import {
   LayoutDashboard,
   Receipt,
@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useLogout } from "@/hooks/useAuth";
 
 const navItems = [
   { to: "/dashboard" as const, label: "Overview", icon: LayoutDashboard },
@@ -28,6 +29,8 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
   const location = useLocation()
   const pathname = location.pathname
+
+  const logout = useLogout()
 
   return (
     <>
@@ -94,12 +97,12 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
           </ul>
         </nav>
 
-        <div className="border-t border-sidebar-border p-3">
+        <div className="border-t border-sidebar-border p-3"  onClick={logout}>
           <Link
             to="/login"
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-4 w-4"/>
             Sign out
           </Link>
         </div>

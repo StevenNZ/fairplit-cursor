@@ -1,6 +1,8 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { DashboardHeader } from "@/components/dashboard-header"
+import { useAuth } from "@/contexts/AuthContext"
+import { useNavigate } from "@tanstack/react-router"
 
 export default function DashboardLayout({
   children,
@@ -8,6 +10,20 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const auth = useAuth();
+  const navigate = useNavigate();
+
+  // redirect to login if not authenticated
+  useEffect(() => {
+    if (!auth.isAuthenticated && !auth.isLoading) {
+      navigate({ to: '/login' });
+    }
+  }, [auth.isAuthenticated, auth.isLoading]);
+
+  if (auth.isLoading || !auth.isAuthenticated) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

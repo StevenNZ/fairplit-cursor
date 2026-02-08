@@ -1,6 +1,22 @@
-import React from "react"
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "@tanstack/react-router";
+import React, { useEffect } from "react"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  const auth = useAuth();
+  const navigate = useNavigate();
+
+  // redirect to dashboard if already logged in
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      navigate({ to: '/dashboard' });
+    }
+  }, [auth.isAuthenticated]);
+
+  if (auth.isLoading || auth.isAuthenticated) {
+    return <div>Loading...</div>;
+  }
+  
   return (
     <div className="flex min-h-screen">
       <div className="hidden lg:flex lg:w-1/2 bg-foreground relative overflow-hidden">
