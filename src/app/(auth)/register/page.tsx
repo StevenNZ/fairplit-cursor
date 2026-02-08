@@ -4,12 +4,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, ArrowRight, Check } from "lucide-react"
+import { useRegister } from "@/hooks/useAuth"
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const registerMutation = useRegister();
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("")
+  const [name, setName] = useState("")
 
   const passwordChecks = [
     { label: "At least 8 characters", met: password.length >= 8 },
@@ -20,9 +24,15 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    setIsLoading(false)
-    navigate({ to: "/dashboard" })
+
+    try {
+      await registerMutation.mutateAsync({ email, password, name })
+      navigate({ to: "/login" });
+      } catch (err) {
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -42,27 +52,17 @@ export default function RegisterPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <div className="flex flex-col gap-2">
             <Label htmlFor="firstName" className="text-sm font-medium text-foreground">
-              First name
+              Name
             </Label>
             <Input
               id="firstName"
               type="text"
               placeholder="John"
-              required
-              className="h-11 bg-card border-border px-4 text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="lastName" className="text-sm font-medium text-foreground">
-              Last name
-            </Label>
-            <Input
-              id="lastName"
-              type="text"
-              placeholder="Doe"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
               className="h-11 bg-card border-border px-4 text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
             />
@@ -77,6 +77,8 @@ export default function RegisterPage() {
             id="email"
             type="email"
             placeholder="you@example.com"
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)}
             required
             className="h-11 bg-card border-border px-4 text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
           />
