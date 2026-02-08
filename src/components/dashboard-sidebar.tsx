@@ -56,7 +56,7 @@ export function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
               <Wallet className="h-4 w-4 text-sidebar-primary-foreground" />
             </div>
             <span className="font-display text-lg font-bold text-sidebar-foreground">
-              FinTrack
+              FairSplit
             </span>
           </Link>
           <Button
