@@ -13,10 +13,6 @@ interface StatCardsProps {
 }
 
 export function StatCards({ expenses, previousExpenses = [] }: StatCardsProps) {
-  console.log(expenses);
-  console.log(previousExpenses);
-  
-  
   // Current period calculations
   const totalSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0)
   const avgExpense = expenses.length > 0 ? totalSpent / expenses.length : 0
