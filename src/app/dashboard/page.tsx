@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { StatCards } from "@/components/stat-cards"
 import { SpendingChart } from "@/components/spending-chart"
 import { RecentExpenses } from "@/components/recent-expenses"

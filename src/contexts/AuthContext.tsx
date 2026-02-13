@@ -1,9 +1,8 @@
 import { createContext, useContext, useEffect } from 'react';
-import { useCurrentUser, useLogout, tokenManager } from '../hooks/useAuth';
+import { useLogout, tokenManager } from '../hooks/useAuth';
 import type { User } from '../types';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { authAPI } from '@/api/authAPI';
-import { useNavigate } from '@tanstack/react-router';
 
 export interface AuthContextType {
   user: User | null;

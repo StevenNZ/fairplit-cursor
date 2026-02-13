@@ -16,7 +16,6 @@ import {
   AreaChart,
   Area,
 } from "recharts"
-import type { Expense } from "../../../types"
 import { useAuth } from "@/contexts/AuthContext"
 import { useExpenses } from "@/hooks/useExpenses"
 

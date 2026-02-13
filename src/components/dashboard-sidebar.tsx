@@ -1,6 +1,6 @@
 'use client';
 
-import { Link, Navigate, useLocation, useNavigate } from "@tanstack/react-router"
+import { Link, useLocation, useNavigate } from "@tanstack/react-router"
 import {
   LayoutDashboard,
   Receipt,
@@ -12,7 +12,6 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { useLogout } from "@/hooks/useAuth";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
