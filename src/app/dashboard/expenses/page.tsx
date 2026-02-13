@@ -2,13 +2,6 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -21,16 +14,27 @@ import {
 import { ExpenseTable } from "@/components/expense-table"
 import { ExpenseDialog } from "@/components/expense-dialog"
 import { Plus, Search } from "lucide-react"
-import { MOCK_EXPENSES } from "@/lib/mock-data"
 import type { Expense } from "../../../types"
+import { useAuth } from "@/contexts/AuthContext"
+import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from "@/hooks/useExpenses"
 
 export default function ExpensesPage() {
-  const [expenses, setExpenses] = useState<Expense[]>(MOCK_EXPENSES)
+  const auth = useAuth()
+  const userId = auth.user?.id || ''
+  
+  // Fetch expenses
+  const { data: expenses = [], isLoading } = useExpenses(userId)
+  
+  // Mutations
+  const createExpense = useCreateExpense(userId)
+  const updateExpense = useUpdateExpense(userId)
+  const deleteExpense = useDeleteExpense(userId)
+  
+  // UI state
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
 
   const filteredExpenses = expenses.filter((expense) => {
     const matchesSearch = expense.description
@@ -41,16 +45,25 @@ export default function ExpensesPage() {
 
   const handleSave = (data: Omit<Expense, "id"> & { id?: string }) => {
     if (data.id) {
-      setExpenses((prev) =>
-        prev.map((e) => (e.id === data.id ? { ...e, ...data } as Expense : e))
-      )
+      // Update existing expense
+      updateExpense.mutate({
+        expenseId: data.id,
+        data: {
+          amount: data.amount,
+          description: data.description,
+          localDate: data.localDate,
+        }
+      })
     } else {
-      setExpenses((prev) => [
-        ...prev,
-        { ...data, id: crypto.randomUUID() } as Expense,
-      ])
+      // Create new expense
+      createExpense.mutate({
+        amount: data.amount,
+        description: data.description,
+        localDate: data.localDate,
+      })
     }
     setEditingExpense(null)
+    setDialogOpen(false)
   }
 
   const handleEdit = (expense: Expense) => {
@@ -64,9 +77,13 @@ export default function ExpensesPage() {
 
   const confirmDelete = () => {
     if (deleteId) {
-      setExpenses((prev) => prev.filter((e) => e.id !== deleteId))
+      deleteExpense.mutate(deleteId)
       setDeleteId(null)
     }
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>
   }
 
   return (
