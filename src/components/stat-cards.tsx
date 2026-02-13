@@ -9,41 +9,74 @@ import type { Expense } from "../types"
 
 interface StatCardsProps {
   expenses: Expense[]
+  previousExpenses?: Expense[] // Add previous period expenses
 }
 
-export function StatCards({ expenses }: StatCardsProps) {
+export function StatCards({ expenses, previousExpenses = [] }: StatCardsProps) {
+  console.log(expenses);
+  console.log(previousExpenses);
+  
+  
+  // Current period calculations
   const totalSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0)
   const avgExpense = expenses.length > 0 ? totalSpent / expenses.length : 0
   const highestExpense = expenses.length > 0 ? Math.max(...expenses.map((e) => e.amount)) : 0
   const transactionCount = expenses.length
 
+  // Previous period calculations
+  const prevTotalSpent = previousExpenses.reduce((sum, exp) => sum + exp.amount, 0)
+  const prevAvgExpense = previousExpenses.length > 0 ? prevTotalSpent / previousExpenses.length : 0
+  const prevHighestExpense = previousExpenses.length > 0 ? Math.max(...previousExpenses.map((e) => e.amount)) : 0
+  const prevTransactionCount = previousExpenses.length
+
+  // Calculate percentage changes
+  const calculateChange = (current: number, previous: number) => {
+    if (previous === 0) return { percentage: 0, trend: "neutral" as const }
+    const change = ((current - previous) / previous) * 100
+    return {
+      percentage: Math.abs(change),
+      trend: change > 0 ? "up" as const : change < 0 ? "down" as const : "neutral" as const
+    }
+  }
+
+  const totalSpentChange = calculateChange(totalSpent, prevTotalSpent)
+  const avgExpenseChange = calculateChange(avgExpense, prevAvgExpense)
+  const highestExpenseChange = calculateChange(highestExpense, prevHighestExpense)
+  const transactionChange = transactionCount - prevTransactionCount
+
   const stats = [
     {
       label: "Total Spent",
       value: `$${totalSpent.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      change: "+12.5%",
-      trend: "up" as const,
+      change: totalSpentChange.percentage > 0 
+        ? `${totalSpentChange.trend === "up" ? "+" : "-"}${totalSpentChange.percentage.toFixed(1)}%`
+        : "No change",
+      trend: totalSpentChange.trend,
       icon: DollarSign,
     },
     {
       label: "Average Expense",
       value: `$${avgExpense.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      change: "-3.2%",
-      trend: "down" as const,
+      change: avgExpenseChange.percentage > 0
+        ? `${avgExpenseChange.trend === "up" ? "+" : "-"}${avgExpenseChange.percentage.toFixed(1)}%`
+        : "No change",
+      trend: avgExpenseChange.trend,
       icon: TrendingDown,
     },
     {
       label: "Highest Expense",
       value: `$${highestExpense.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      change: "+8.1%",
-      trend: "up" as const,
+      change: highestExpenseChange.percentage > 0
+        ? `${highestExpenseChange.trend === "up" ? "+" : "-"}${highestExpenseChange.percentage.toFixed(1)}%`
+        : "No change",
+      trend: highestExpenseChange.trend,
       icon: TrendingUp,
     },
     {
       label: "Transactions",
       value: transactionCount.toString(),
-      change: "+5",
-      trend: "up" as const,
+      change: transactionChange !== 0 ? `${transactionChange > 0 ? "+" : ""}${transactionChange}` : "No change",
+      trend: transactionChange > 0 ? "up" as const : transactionChange < 0 ? "down" as const : "neutral" as const,
       icon: CreditCard,
     },
   ]

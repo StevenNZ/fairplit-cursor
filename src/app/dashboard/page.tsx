@@ -23,6 +23,26 @@ export default function DashboardPage() {
   }
 
   const { data: expenses = [], isLoading } = useExpenses(user.id)
+
+  // Get current date info
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth()
+
+  const currentMonthExpenses = expenses.filter(expense => {
+    const expenseDate = new Date(expense.localDate)
+    return expenseDate.getMonth() === currentMonth && 
+           expenseDate.getFullYear() === currentYear
+  })
+
+  const previousMonthExpenses = expenses.filter(expense => {
+    const expenseDate = new Date(expense.localDate)
+    const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1
+    return expenseDate.getMonth() === prevMonth && 
+           expenseDate.getFullYear() === prevYear
+  })
+
   const createExpense = useCreateExpense(user.id)
 
   if (isLoading) {
@@ -57,7 +77,10 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      <StatCards expenses={expenses} />
+      <StatCards 
+        expenses={currentMonthExpenses} 
+        previousExpenses={previousMonthExpenses} 
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <SpendingChart expenses={expenses} />
