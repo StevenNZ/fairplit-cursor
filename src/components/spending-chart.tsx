@@ -73,7 +73,7 @@ export function SpendingChart({ expenses }: SpendingChartProps) {
       </CardHeader>
       <CardContent className="pt-0">
         <ChartContainer config={chartConfig} className="h-[240px] w-full">
-          <BarChart data={chartData} margin={{ top: 8, right: 0, left: -20, bottom: 0 }}>
+          <BarChart data={chartData} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
             <XAxis
               dataKey="day"
