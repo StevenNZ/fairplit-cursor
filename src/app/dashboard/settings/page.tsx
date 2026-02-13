@@ -71,52 +71,6 @@ export default function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
-
-      <Card className="border-border bg-card">
-        <CardHeader>
-          <CardTitle className="font-display text-base font-semibold text-foreground">
-            Monthly Budget
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <p className="text-sm text-muted-foreground">
-            Set a monthly budget to help track your spending goals.
-          </p>
-          <div className="flex flex-col gap-2">
-            <Label className="text-sm font-medium text-foreground">
-              Budget amount ($)
-            </Label>
-            <Input
-              defaultValue="2000"
-              type="number"
-              className="h-10 bg-background border-border text-foreground max-w-xs"
-            />
-          </div>
-          <Button className="w-fit bg-primary text-primary-foreground hover:bg-primary/90">
-            Update budget
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="border-destructive/20 bg-card">
-        <CardHeader>
-          <CardTitle className="font-display text-base font-semibold text-destructive">
-            Danger Zone
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <p className="text-sm text-muted-foreground">
-            Once you delete your account, there is no going back. Please be
-            certain.
-          </p>
-          <Button
-            variant="outline"
-            className="w-fit border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground bg-transparent"
-          >
-            Delete account
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   )
 }
