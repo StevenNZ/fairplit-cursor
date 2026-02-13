@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   ChartContainer,
@@ -17,8 +16,9 @@ import {
   AreaChart,
   Area,
 } from "recharts"
-import { MOCK_EXPENSES } from "@/lib/mock-data"
 import type { Expense } from "../../../types"
+import { useAuth } from "@/contexts/AuthContext"
+import { useExpenses } from "@/hooks/useExpenses"
 
 const barConfig = {
   amount: { label: "Spending", color: "hsl(var(--chart-1))" },
@@ -33,38 +33,56 @@ const areaConfig = {
 } satisfies ChartConfig
 
 export default function AnalyticsPage() {
-  const [expenses] = useState<Expense[]>(MOCK_EXPENSES)
+  const auth = useAuth()
+  const { data: expenses = [], isLoading } = useExpenses(auth.user?.id || '')
 
-  // Cumulative spending over time
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  // Sort expenses by date (oldest to newest)
   const sortedByDate = [...expenses].sort(
     (a, b) => new Date(a.localDate).getTime() - new Date(b.localDate).getTime()
   )
+
+  // Cumulative spending over time
   let running = 0
   const cumulativeData = sortedByDate.map((exp) => {
     running += exp.amount
+    const date = new Date(exp.localDate)
     return {
-      date: new Date(exp.localDate).toLocaleDateString("en-US", {
+      date: date.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
       }),
       cumulative: Number(running.toFixed(2)),
+      fullDate: date.toISOString().slice(0, 10), // For sorting
     }
   })
 
-  // Daily spending trend
-  const dailyMap = expenses.reduce<Record<string, number>>((acc, exp) => {
-    const day = new Date(exp.localDate).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    })
-    acc[day] = (acc[day] || 0) + exp.amount
+  // Daily spending trend - group by actual date
+  const dailyMap = sortedByDate.reduce<Record<string, number>>((acc, exp) => {
+    const dateKey = new Date(exp.localDate).toISOString().slice(0, 10)
+    acc[dateKey] = (acc[dateKey] || 0) + exp.amount
     return acc
   }, {})
+
+  // Convert to array and sort by date (oldest to newest)
   const dailyData = Object.entries(dailyMap)
-    .map(([day, amount]) => ({ day, amount: Number(amount.toFixed(2)) }))
-    .reverse()
+    .map(([dateKey, amount]) => ({
+      day: new Date(dateKey).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      amount: Number(amount.toFixed(2)),
+      dateKey, // Keep for sorting
+    }))
+    .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
 
   const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0)
+  const avgDaily = dailyData.length > 0 
+    ? totalSpent / dailyData.length 
+    : 0
 
   return (
     <div className="flex flex-col gap-6">
@@ -85,14 +103,17 @@ export default function AnalyticsPage() {
               Cumulative Spending
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Total spending over time - ${totalSpent.toFixed(2)}
+              Total spending over time - ${totalSpent.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </p>
           </CardHeader>
           <CardContent className="pt-0">
             <ChartContainer config={lineConfig} className="h-[280px] w-full">
               <LineChart
                 data={cumulativeData}
-                margin={{ top: 8, right: 16, left: -20, bottom: 0 }}
+                margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -110,7 +131,7 @@ export default function AnalyticsPage() {
                   tickLine={false}
                   axisLine={false}
                   fontSize={12}
-                  tickFormatter={(v) => `$${v}`}
+                  tickFormatter={(v) => `$${v.toLocaleString()}`}
                   tick={{ fill: "hsl(var(--muted-foreground))" }}
                 />
                 <ChartTooltip content={<ChartTooltipContent />} />
@@ -123,6 +144,56 @@ export default function AnalyticsPage() {
                   activeDot={{ r: 5 }}
                 />
               </LineChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Average Daily Spending */}
+        <Card className="border-border bg-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="font-display text-base font-semibold text-foreground">
+              Daily Average
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Average spending per day - ${avgDaily.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </p>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ChartContainer config={barConfig} className="h-[280px] w-full">
+              <BarChart
+                data={dailyData}
+                margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="hsl(var(--border))"
+                />
+                <XAxis
+                  dataKey="day"
+                  tickLine={false}
+                  axisLine={false}
+                  fontSize={12}
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  fontSize={12}
+                  tickFormatter={(v) => `$${v.toLocaleString()}`}
+                  tick={{ fill: "hsl(var(--muted-foreground))" }}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar
+                  dataKey="amount"
+                  fill="var(--color-amount)"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={48}
+                />
+              </BarChart>
             </ChartContainer>
           </CardContent>
         </Card>
@@ -142,7 +213,7 @@ export default function AnalyticsPage() {
           <ChartContainer config={areaConfig} className="h-[280px] w-full">
             <AreaChart
               data={dailyData}
-              margin={{ top: 8, right: 16, left: -20, bottom: 0 }}
+              margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
             >
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -160,7 +231,7 @@ export default function AnalyticsPage() {
                 tickLine={false}
                 axisLine={false}
                 fontSize={12}
-                tickFormatter={(v) => `$${v}`}
+                tickFormatter={(v) => `$${v.toLocaleString()}`}
                 tick={{ fill: "hsl(var(--muted-foreground))" }}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
@@ -194,6 +265,3 @@ export default function AnalyticsPage() {
     </div>
   )
 }
-
-// Need to import Cell for individual bar coloring
-import { Cell } from "recharts"
