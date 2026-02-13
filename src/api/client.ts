@@ -17,8 +17,15 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = tokenManager.getToken(); // Use tokenManager instead
     
-    console.log('🔑 Request token:', token ? 'exists' : 'missing');
-    
+        // Check if token is expired before making the request
+        if (token && tokenManager.isTokenExpired(token)) {
+          console.log('⏰ Token expired, clearing and redirecting...');
+          tokenManager.removeToken();
+          tokenManager.removeUser();
+          window.location.href = '/login';
+          return Promise.reject(new Error('Token expired'));
+        }
+
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }

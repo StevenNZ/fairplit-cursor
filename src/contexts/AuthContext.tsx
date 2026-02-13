@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 import { useCurrentUser, useLogout, tokenManager } from '../hooks/useAuth';
 import type { User } from '../types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -17,17 +17,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = useLogout()
 
-  // fetch current user from backend if token exists
+  useEffect(() => {
+    const token = tokenManager.getToken();
+    if (token && tokenManager.isTokenExpired(token)) {
+      // Token is expired, clear it and logout
+      logout();
+    }
+  }, []);
+
+  // fetch current user from backend if token exists and is valid
   const { data: user, isLoading } = useQuery({
     queryKey: ['me'],
     queryFn: authAPI.getCurrentUser,
-    enabled: !!tokenManager.getToken(),
+    enabled: !!tokenManager.getToken() && !tokenManager.isTokenExpired(tokenManager.getToken() || ''),
     retry: false,
-    initialData: tokenManager.getUser() || undefined, // hydrate from localStorage
+    initialData: tokenManager.getUser() || undefined,
   });
 
   const token = tokenManager.getToken();
-  const isAuthenticated = !!user && !!token && !isTokenExpired(token);
+  const isAuthenticated = !!user && !!token && !tokenManager.isTokenExpired(token);
 
 
   return (
@@ -51,12 +59,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-export const isTokenExpired = (token: string): boolean => {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.exp * 1000 < Date.now(); // exp is in seconds
-  } catch {
-    return true; // invalid token
-  }
-}
