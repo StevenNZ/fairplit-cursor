@@ -40,7 +40,7 @@ export default function RegisterPage() {
       <div className="flex flex-col gap-2">
         <div className="lg:hidden mb-4">
           <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
-            FinTrack
+            FairSplit
           </h1>
         </div>
         <h2 className="font-display text-3xl font-bold tracking-tight text-foreground">
