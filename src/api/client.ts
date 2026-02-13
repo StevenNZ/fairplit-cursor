@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { tokenManager } from '../hooks/useAuth';
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -14,7 +15,10 @@ export const apiClient: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('auth_token');
+    const token = tokenManager.getToken(); // Use tokenManager instead
+    
+    console.log('🔑 Request token:', token ? 'exists' : 'missing');
+    
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }

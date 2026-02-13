@@ -28,7 +28,7 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const user = await loginMutation.mutateAsync({ email, password })
+      await loginMutation.mutateAsync({ email, password })
       navigate({ to: '/dashboard' });
       } catch (err) {
       console.error(err)
